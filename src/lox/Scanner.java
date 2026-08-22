@@ -43,6 +43,17 @@ class Scanner {
         String text = source.substring(start, current);
         tokens.add(new Token(type, text, literal, line));
     }
+    private boolean match(char expected) {
+        if (isAtEnd()) return false;
+        if (source.charAt(current) != expected)return false;
+
+        current++;
+        return true;
+    }
+    private char peek() {   //看下一个字符，不像advance会消费字符
+        if (isAtEnd()) return '\0';
+        return source.charAt(current);
+    }
     private void scanToken() {
         char c = advance();
         switch (c) {
@@ -56,6 +67,35 @@ class Scanner {
             case '+': addToken(PLUS); break;
             case ';': addToken(SEMICOLON); break;
             case '*': addToken(STAR); break;
+            case '!':
+                addToken(match('=') ? BANG_EQUAL : BANG);
+                break;
+            case '=':
+                addToken(match('=') ? EQUAL_EQUAL : EQUAL);
+                break;
+            case '<':
+                addToken(match('=') ? LESS_EQUAL : LESS);
+                break;
+            case '>':
+                addToken(match('=') ? GREATER_EQUAL : GREATER);
+                break;
+            case '/':
+                if (match('/')){
+                    while (peek() != '\n' && !isAtEnd()) advance(); //peak直到换行，消费掉中间全部字符(换行留到后面匹配)
+                } else {
+                    addToken(SLASH);
+                }
+                break;
+            case ' ':
+            case '\r':
+            case '\t':
+                break;  //跳过空白字符
+            case '\n':
+                line++;
+                break;
+            default:
+                Lox.error(line, "Unexpected character.");
+                break;
         }
     }
 }
