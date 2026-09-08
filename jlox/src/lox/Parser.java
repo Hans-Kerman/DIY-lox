@@ -81,6 +81,29 @@ class Parser {
         return new ParseError();
     }
 
+    //用于发生错误之后跳出到下一个语句("同步")，避免循环错误
+    private void synchronize() {
+        advance();
+
+        while (!isAtEnd()) {
+            if (previous().type == SEMICOLON) return;
+
+            switch (peek().type) {
+                case CLASS:
+                case FUN:
+                case VAR:
+                case FOR:
+                case IF:
+                case WHILE:
+                case PRINT:
+                case RETURN:
+                    return;
+            }
+
+            advance();
+        }
+    }
+
     private Expr comparison() {
         Expr expr = term();
 
@@ -135,5 +158,8 @@ class Parser {
             consume(RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
+
+        //最后的兜底，格式不对用error跳出并且销毁栈
+        throw error(peek(), "Expect expression.");
     }
 }
