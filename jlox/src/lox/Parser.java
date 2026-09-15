@@ -15,7 +15,14 @@ import static lox.TokenType.*;
  * unary          → ( "!" | "-" ) unary
  *                | primary ;
  * primary        → NUMBER | STRING | "true" | "false" | "nil"
- *                | "(" expression ")" ;
+ *                | "(" expression ")"
+ *                | IDENTIFIER;
+ *
+ * 语法规则：
+ * program        → declaration* EOF ;
+ * declaration    → varDecl | statement ;
+ *      varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+ * statement      → exprStmt | printStmt ;
  */
 
 class Parser {
