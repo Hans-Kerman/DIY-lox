@@ -8,6 +8,8 @@ import static lox.TokenType.*;
 /**
  * 总规则：
  * expression     → equality ;
+ * expression     → assignment ;
+ * assignment     → IDENTIFIER "=" assignment | equality ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -44,7 +46,7 @@ class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return assignment();
     }
 
     private Stmt declaration() {
@@ -70,6 +72,22 @@ class Parser {
         Expr expr = expression();
         consume(SEMICOLON, "Expect ';' after expression.");
         return new Stmt.Expression(expr);
+    }
+
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable)expr).name;
+                return new Expr.Assign(name, value);
+            }
+            error(equals, "Invalid assignment target.");
+        }
+        return expr;
     }
 
     private Stmt varDeclaration() {
