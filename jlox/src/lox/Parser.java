@@ -24,8 +24,11 @@ import static lox.TokenType.*;
  * program        → declaration* EOF ;
  * declaration    → varDecl | statement ;
  *      varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
- * statement      → exprStmt | printStmt | block ;
+ * statement      → exprStmt | ifStmt | printStmt | block ;
  * block          → "{" declaration* "}" ;
+ *
+ * 控制流规则：
+ * ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
  */
 
 class Parser {
@@ -61,9 +64,23 @@ class Parser {
     }
 
     private Stmt statement() {
+        if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
         return expressionStatement();
+    }
+    private Stmt ifStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = expression();
+        consume(RIGHT_PAREN, "Expect ')' after if condition.");
+
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+        if (match(ELSE)) {
+            elseBranch = statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
     private Stmt printStatement() {
         Expr value = expression();
