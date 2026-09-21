@@ -32,7 +32,7 @@ import static lox.TokenType.*;
  *      funDecl        → "fun" function ;
  * function       → IDENTIFIER "(" parameters? ")" block ;
  * parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
- * statement      → exprStmt | forStmt | ifStmt | printStmt | whileStmt | block ;
+ * statement      → exprStmt | forStmt | ifStmt | printStmt | returnStmt | whileStmt | block ;
  * block          → "{" declaration* "}" ;
  *
  * 控制流规则：
@@ -41,6 +41,7 @@ import static lox.TokenType.*;
  * forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
  *                  expression? ";"
  *                  expression? ")" statement ;
+ * returnStmt     → "return" expression? ";" ;
  */
 
 class Parser {
@@ -80,6 +81,7 @@ class Parser {
         if (match(FOR)) return forStatement();
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
+        if (match(RETURN)) return returnStatement();
         if (match(WHILE)) return whileStatement();
         if (match(LEFT_BRACE)) return new Stmt.Block(block());
         return expressionStatement();
@@ -139,6 +141,16 @@ class Parser {
         Expr value = expression();
         consume(SEMICOLON, "Expect ';' after value.");
         return new Stmt.Print(value);
+    }
+    private Stmt returnStatement() {
+        Token keyword = previous();
+        Expr value = null;
+        if (!check(SEMICOLON)) {
+            value = expression();
+        }
+
+        consume(SEMICOLON, "Expect ';' after return value.");
+        return new Stmt.Return(keyword, value);
     }
     private Stmt expressionStatement() {
         Expr expr = expression();
